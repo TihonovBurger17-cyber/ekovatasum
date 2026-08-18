@@ -1,0 +1,1 @@
+const DB='https://ekovata-21676-default-rtdb.europe-west1.firebasedatabase.app/';
