@@ -268,8 +268,8 @@ body.boot .app,body.boot .nav{visibility:hidden}
       <div class="lbl" id="profitLbl">Прибыль за месяц</div>
       <div class="big" id="profitBig">0</div>
       <div class="mini">
-        <div class="in"><em><i data-ic="arrowUp"></i>Приход</em><b id="sumIn">0 ₽</b></div>
-        <div class="out"><em><i data-ic="arrowDown"></i>Расход</em><b id="sumOut">0 ₽</b></div>
+        <div class="in"><em><i data-ic="arrowDown"></i>Приход</em><b id="sumIn">0 ₽</b></div>
+        <div class="out"><em><i data-ic="arrowUp"></i>Расход</em><b id="sumOut">0 ₽</b></div>
       </div>
     </div>
 
@@ -278,8 +278,8 @@ body.boot .app,body.boot .nav{visibility:hidden}
     </div>
 
     <div class="qa">
-      <button class="qbtn" data-new="income"><span class="qi"><i data-ic="arrowDown"></i></span>Приход</button>
-      <button class="qbtn" data-new="expense"><span class="qi"><i data-ic="arrowUp"></i></span>Расход</button>
+      <button class="qbtn" data-new="income"><span class="qi"><i data-ic="arrowUp"></i></span>Приход</button>
+      <button class="qbtn" data-new="expense"><span class="qi"><i data-ic="arrowDown"></i></span>Расход</button>
       <button class="qbtn" data-new="prod"><span class="qi"><i data-ic="box"></i></span>Эковата</button>
       <button class="qbtn" data-new="salary"><span class="qi"><i data-ic="user"></i></span>Зарплата</button>
     </div>
@@ -924,6 +924,41 @@ $('fileImport').onchange=async ev=>{
   }catch(e){toast('Не удалось прочитать файл')}};
   r.readAsText(ev.target.files[0]);
 };
+
+/* ---------- свайпы для перелистывания месяцев (только Главная и Календарь) ---------- */
+let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+const SWIPE_MIN_X = 50;    // минимальная длина горизонтального свайпа в пикселях
+const SWIPE_MAX_TIME = 500; // максимум времени в мс, чтобы считаться свайпом
+
+document.addEventListener('touchstart', e => {
+  // Игнорируем касания внутри модалок, листов и полей ввода
+  if (e.target.closest('.modal') || e.target.closest('.sheet') || e.target.closest('input, select, textarea')) return;
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+  touchStartTime = Date.now();
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+  // Игнорируем касания внутри модалок, листов и полей ввода
+  if (e.target.closest('.modal') || e.target.closest('.sheet') || e.target.closest('input, select, textarea')) return;
+  // Свайпы работают только на вкладках «Главная» и «Календарь»
+  if (curTab !== 'home' && curTab !== 'cal') return;
+
+  const dx = e.changedTouches[0].screenX - touchStartX;
+  const dy = e.changedTouches[0].screenY - touchStartY;
+  const dt = Date.now() - touchStartTime;
+
+  // Свайп слишком короткий
+  if (Math.abs(dx) < SWIPE_MIN_X) return;
+  // Это скорее вертикальный скролл, а не горизонтальный свайп
+  if (Math.abs(dx) < Math.abs(dy)) return;
+  // Свайп слишком медленный
+  if (dt > SWIPE_MAX_TIME) return;
+
+  // Свайп ВЛЕВО (dx < 0) → следующий месяц, свайп ВПРАВО (dx > 0) → предыдущий
+  if (dx < 0) shiftMonth(1);
+  else shiftMonth(-1);
+}, { passive: true });
 </script>
 </body>
 </html>
